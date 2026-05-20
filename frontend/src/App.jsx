@@ -8,7 +8,7 @@ function App() {
   const [cliente, setCliente] = useState('');
   const [servicio, setServicio] = useState('');
 
-  // Formulario para que el mecánico edite diagnósticos complejos ("Algo más profundo")
+  // Formulario para que el mecánico edite diagnósticos complejos
   const [idSeleccionado, setIdSeleccionado] = useState(null);
   const [nuevoEstado, setNuevoEstado] = useState('');
   const [detallesHallazgo, setDetallesHallazgo] = useState('');
