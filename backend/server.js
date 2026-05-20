@@ -4,16 +4,16 @@ const swaggerUi = require('swagger-ui-express');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware para permitir que el servidor entienda JSON
+
 app.use(express.json());
 
-// Base de datos en memoria (Simulación para mantener la simplicidad técnica)
+// Base de datos en memoria 
 let turnos = [
   { id: 1, placa: "XYZ-123", cliente: "Juan Pérez", servicio: "Cambio de aceite", estado: "En diagnóstico", hallazgos: "" },
   { id: 2, placa: "ABC-789", cliente: "Maria Gomez", servicio: "Mantenimiento general", estado: "Recibida", hallazgos: "" }
 ];
 
-// Documentación Swagger en formato JSON básico (Evita configuraciones complejas)
+// Documentación Swagger
 const swaggerDocument = {
   openapi: "3.0.0",
   info: {
@@ -38,7 +38,7 @@ const swaggerDocument = {
   }
 };
 
-// Ruta para la interfaz gráfica de Swagger
+// Ruta para la interfaz gráfica 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // ---- ENDPOINTS DE LA API REST ----
