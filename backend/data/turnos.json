@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "placa": "XYZ-123",
+    "cliente": "Juan Pérez",
+    "servicio": "Cambio de aceite",
+    "estado": "En diagnóstico",
+    "hallazgos": ""
+  },
+  {
+    "id": 2,
+    "placa": "PMQ87E",
+    "cliente": "Jhon Doe",
+    "servicio": "Revisión General",
+    "estado": "En Espera",
+    "hallazgos": ""
+  }
+]

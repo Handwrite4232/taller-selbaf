@@ -1,83 +1,109 @@
 // backend/server.js
 const express = require('express');
 const swaggerUi = require('swagger-ui-express');
+const fs = require('fs').promises;
+const path = require('path');
+const cors = require('cors'); // Para permitir conectar con el frontend sin bloqueos
+
 const app = express();
 const PORT = process.env.PORT || 5000;
+const DB_PATH = path.join(__dirname, 'data', 'turnos.json');
 
-// Middleware para permitir que el servidor entienda JSON
+app.use(cors());
 app.use(express.json());
 
-// Base de datos en memoria (Simulación para mantener la simplicidad técnica)
-let turnos = [
-  { id: 1, placa: "XYZ-123", cliente: "Juan Pérez", servicio: "Cambio de aceite", estado: "En diagnóstico", hallazgos: "" },
-  { id: 2, placa: "ABC-789", cliente: "Maria Gomez", servicio: "Mantenimiento general", estado: "Recibida", hallazgos: "" }
-];
-
-// Documentación Swagger en formato JSON básico (Evita configuraciones complejas)
+// Estructura de Swagger conforme al informe
 const swaggerDocument = {
   openapi: "3.0.0",
   info: {
     title: "API de Gestión Taller Selbaf",
     version: "1.0.0",
-    description: "Endpoints para controlar el agendamiento y los diagnósticos mecánicos de motocicletas."
+    description: "Endpoints interactivos para el control de agendamiento y diagnóstico de motocicletas."
   },
   paths: {
     "/api/turnos": {
       get: {
         summary: "Obtener todos los turnos del taller",
-        responses: { "200": { description: "Lista de turnos obtenida con éxito." } }
+        responses: {
+          "200": { description: "Lista obtenida con éxito." },
+          "500": { description: "Error interno en la base de datos." }
+        }
       },
       post: {
-        summary: "Crear un nuevo turno (Agendamiento)",
-        requestBody: {
-          content: { "application/json": { schema: { type: "object", properties: { placa: { type: "string" }, cliente: { type: "string" }, servicio: { type: "string" } } } } }
-        },
-        responses: { "201": { description: "Turno creado exitosamente." } }
+        summary: "Registrar un nuevo turno",
+        responses: {
+          "201": { description: "Turno creado." },
+          "400": { description: "Datos incompletos." }
+        }
       }
     }
   }
 };
-
-// Ruta para la interfaz gráfica de Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// ---- ENDPOINTS DE LA API REST ----
-
-// 1. GET: Obtener todos los turnos (Usado por el Mecánico para ver su cola de trabajo)
-app.get('/api/turnos', (req, res) => {
-  res.json(turnos);
+// 1. GET con detección de errores
+app.get('/api/turnos', async (req, res) => {
+  try {
+    const data = await fs.readFile(DB_PATH, 'utf-8');
+    res.json(JSON.parse(data));
+  } catch (error) {
+    console.error("Error al leer la base de datos:", error);
+    res.status(500).json({ error: "Error interno al leer la base de datos." });
+  }
 });
 
-// 2. POST: Crear una nueva cita (Usado por el Cliente en el formulario de agendamiento)
-app.post('/api/turnos', (req, res) => {
-  const { placa, cliente, servicio } = req.body;
-  const nuevoTurno = {
-    id: turnos.length + 1,
-    placa,
-    cliente,
-    servicio,
-    estado: "Recibida",
-    hallazgos: ""
-  };
-  turnos.push(nuevoTurno);
-  res.status(201).json(nuevoTurno);
+// 2. POST con validación de datos estructurales
+app.post('/api/turnos', async (req, res) => {
+  try {
+    const { placa, cliente, servicio } = req.body;
+    if (!placa || !cliente) {
+      return res.status(400).json({ error: "Datos incompletos: 'placa' y 'cliente' son obligatorios." });
+    }
+
+    const data = await fs.readFile(DB_PATH, 'utf-8');
+    const turnos = JSON.parse(data);
+
+    const nuevoTurno = {
+      id: turnos.length > 0 ? turnos[turnos.length - 1].id + 1 : 1,
+      placa,
+      cliente,
+      servicio: servicio || "Revisión General",
+      estado: "En Espera",
+      hallazgos: ""
+    };
+
+    turnos.push(nuevoTurno);
+    await fs.writeFile(DB_PATH, JSON.stringify(turnos, null, 2));
+    res.status(201).json({ mensaje: "Turno agendado", turno: nuevoTurno });
+  } catch (error) {
+    res.status(500).json({ error: "Error interno al guardar en la base de datos." });
+  }
 });
 
-// 3. PUT/PATCH: Actualizar diagnóstico profundo (Usado por el mecánico en tiempo real)
-app.put('/api/turnos/:id', (req, res) => {
-  const { id } = req.params;
-  const { estado, hallazgos } = req.body;
-  
-  const turno = turnos.find(t => t.id === parseInt(id));
-  if (!turno) return res.status(404).json({ mensaje: "Turno no encontrado" });
+// 3. PUT con control estricto de excepciones
+app.put('/api/turnos/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { estado, hallazgos } = req.body;
 
-  turno.estado = estado;
-  turno.hallazgos = hallazgos;
+    if (!estado || !hallazgos) {
+      return res.status(400).json({ error: "Campos 'estado' y 'hallazgos' requeridos." });
+    }
 
-  res.json({ mensaje: "Diagnóstico técnico actualizado", turno });
+    const data = await fs.readFile(DB_PATH, 'utf-8');
+    const turnos = JSON.parse(data);
+    
+    const index = turnos.findIndex(t => t.id === parseInt(id));
+    if (index === -1) return res.status(404).json({ error: "Turno no encontrado." });
+
+    turnos[index].estado = estado;
+    turnos[index].hallazgos = hallazgos;
+
+    await fs.writeFile(DB_PATH, JSON.stringify(turnos, null, 2));
+    res.json({ mensaje: "Modificación guardada con éxito", turno: turnos[index] });
+  } catch (error) {
+    res.status(500).json({ error: "Error de persistencia al actualizar." });
+  }
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
-  console.log(`Documentación de Swagger disponible en http://localhost:${PORT}/api-docs`);
-});
+app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));

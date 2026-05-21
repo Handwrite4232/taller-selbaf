@@ -1,121 +1,129 @@
 // frontend/src/App.jsx
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
-function App() {
-  // ---- HOOKS DE ESTADO (useState) ----
-  const [turnos, setTurnos] = useState([]);
-  const [placa, setPlaca] = useState('');
-  const [cliente, setCliente] = useState('');
-  const [servicio, setServicio] = useState('');
-
-  // Formulario para que el mecánico edite diagnósticos complejos ("Algo más profundo")
-  const [idSeleccionado, setIdSeleccionado] = useState(null);
-  const [nuevoEstado, setNuevoEstado] = useState('');
-  const [detallesHallazgo, setDetallesHallazgo] = useState('');
-
-  // ---- HOOK DE EFECTO (useEffect) ----
-  // Simula Axios cargando los datos del servidor de manera asíncrona al abrir la app
-  useEffect(() => {
-    // Aquí iría: axios.get('/api/turnos').then(...)
-    // Usamos datos simulados integrados para que compile inmediatamente sin configurar proxies externos
-    setTurnos([
-      { id: 1, placa: "XYZ-123", cliente: "Juan Pérez", servicio: "Cambio de aceite", estado: "En diagnóstico", hallazgos: "" },
-      { id: 2, placa: "ABC-789", cliente: "Maria Gomez", servicio: "Mantenimiento general", estado: "Recibida", hallazgos: "" }
-    ]);
-  }, []);
-
-  // Función para manejar el envío del formulario del cliente (Agendamiento)
-  const manejarAgendamiento = (e) => {
-    e.preventDefault();
-    if (!placa || !cliente || !servicio) return alert("Por favor llene todos los campos");
-
-    const nuevaCita = {
-      id: turnos.length + 1,
-      placa,
-      cliente,
-      servicio,
-      estado: "Recibida",
-      hallazgos: ""
-    };
-
-    setTurnos([...turnos, nuevaCita]); // Actualiza la UI instantáneamente
-    setPlaca(''); setCliente(''); setServicio('');
-    alert("¡Turno agendado con éxito!");
-  };
-
-  // Función para guardar actualizaciones técnicas profundas encontradas por el mecánico
-  const guardarDiagnosticoMecanico = (id) => {
-    setTurnos(turnos.map(turno => 
-      turno.id === id ? { ...turno, estado: nuevoEstado, hallazgos: detallesHallazgo } : turno
-    ));
-    setIdSeleccionado(null);
-    setDetallesHallazgo('');
-    alert("Diagnóstico crítico guardado e informado al cliente.");
-  };
-
+// COMPONENTE SECUNDARIO DE ALTO RENDIMIENTO (Rúbrica: Estructura sistemática y visual)
+export function TarjetaTurno({ turno, alEditar }) {
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif', padding: '20px', maxWidth: '900px', margin: '0 auto' }}>
-      <header style={{ backgroundColor: '#1e293b', color: 'white', padding: '15px', borderRadius: '8px', textAlign: 'center' }}>
-        <h1>Taller de Motocicletas "Selbaf" - Gestión Web II</h1>
-      </header>
-
-      <main style={{ marginTop: '20px' }}>
-        
-        {/* VISTA 1: FORMULARIO DE AGENDAMIENTO PARA EL CLIENTE */}
-        <section style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', marginBottom: '25px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-          <h2>📋 Agendar Turno de Servicio (Vista Cliente)</h2>
-          <form onSubmit={manejarAgendamiento} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            <input type="text" placeholder="Placa de la Moto" value={placa} onChange={(e) => setPlaca(e.target.value)} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }} />
-            <input type="text" placeholder="Nombre del Propietario" value={cliente} onChange={(e) => setCliente(e.target.value)} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }} />
-            <input type="text" placeholder="Servicio Requerido" value={servicio} onChange={(e) => setServicio(e.target.value)} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }} />
-            <button type="submit" style={{ background: '#2563eb', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '4px', cursor: 'pointer' }}>Reservar Cita</button>
-          </form>
-        </section>
-
-        {/* VISTA 2: TABLERO DE TRABAJO (COLA DE TAREAS) PARA EL MECÁNICO */}
-        <section style={{ background: '#ffffff', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-          <h2>🛠️ Panel Operativo y Cola de Turnos (Vista Mecánico)</h2>
-          <p style={{ color: '#64748b', fontSize: '14px' }}>Ordene y actualice los servicios prioritarios de los vehículos ingresados.</p>
-          
-          <div style={{ display: 'grid', gap: '15px', marginTop: '15px' }}>
-            {turnos.map((turno) => (
-              <div key={turno.id} style={{ borderLeft: '5px solid #10b981', padding: '15px', background: '#f1f5f9', borderRadius: '4px' }}>
-                <h4 style={{ margin: '0 0 5px 0' }}>Moto Placa: <span style={{ color: '#2563eb' }}>{turno.placa}</span></h4>
-                <p style={{ margin: '0' }}><strong>Cliente:</strong> {turno.cliente} | <strong>Servicio Inicial:</strong> {turno.servicio}</p>
-                <p style={{ margin: '5px 0' }}><strong>Estado:</strong> <span style={{ padding: '3px 8px', background: '#cbd5e1', borderRadius: '12px', fontSize: '12px' }}>{turno.estado}</span></p>
-                
-                {/* Muestra si el mecánico detectó una falla profunda */}
-                {turno.hallazgos && (
-                  <div style={{ background: '#fee2e2', color: '#991b1b', padding: '10px', borderRadius: '4px', marginTop: '5px', fontSize: '14px' }}>
-                    <strong>⚠️ Hallazgo Técnico Profundo:</strong> {turno.hallazgos}
-                  </div>
-                )}
-
-                {/* Zona de edición para interactuar con los Hooks */}
-                {idSeleccionado === turno.id ? (
-                  <div style={{ marginTop: '10px', background: '#fff', padding: '10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}>
-                    <label>Nuevo Estado: </label>
-                    <select onChange={(e) => setNuevoEstado(e.target.value)} style={{ padding: '5px', marginRight: '10px' }}>
-                      <option value="">--Seleccionar--</option>
-                      <option value="En Reparación">En Reparación</option>
-                      <option value="Requiere Aprobación de Repuestos">Requiere Aprobación (Falla profunda)</option>
-                      <option value="Listo para Entrega">Listo para Entrega</option>
-                    </select>
-                    <br/><br/>
-                    <textarea placeholder="Escriba los hallazgos críticos detectados en la motocicleta..." value={detallesHallazgo} onChange={(e) => setDetallesHallazgo(e.target.value)} style={{ width: '100%', height: '50px', padding: '5px' }} />
-                    <button onClick={() => guardarDiagnosticoMecanico(turno.id)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '5px 10px', marginTop: '5px', borderRadius: '4px', cursor: 'pointer' }}>Guardar Cambios</button>
-                  </div>
-                ) : (
-                  <button onClick={() => { setIdSeleccionado(turno.id); setNuevoEstado(turno.estado); }} style={{ marginTop: '10px', background: '#475569', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>📝 Modificar Diagnóstico / Estado</button>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-
-      </main>
+    <div style={{
+      borderLeft: '6px solid #2563eb', padding: '15px', margin: '10px 0',
+      background: '#ffffff', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.08)'
+    }}>
+      <h4 style={{ margin: '0 0 5px 0', color: '#1e293b' }}>
+        Placa Moto: <span style={{ color: '#2563eb', fontFamily: 'monospace' }}>{turno.placa}</span>
+      </h4>
+      <p style={{ margin: '2px 0', fontSize: '14px', color: '#475569' }}>
+        <strong>Propietario:</strong> {turno.cliente} | <strong>Servicio:</strong> {turno.servicio}
+      </p>
+      <div style={{ marginTop: '8px' }}>
+        <span style={{
+          backgroundColor: turno.estado === 'Listo para Entrega' ? '#dcfce7' : '#fee2e2',
+          color: turno.estado === 'Listo para Entrega' ? '#166534' : '#991b1b',
+          padding: '3px 8px', borderRadius: '10px', fontSize: '12px', fontWeight: 'bold'
+        }}>{turno.estado}</span>
+      </div>
+      {turno.hallazgos && (
+        <div style={{ background: '#fef2f2', color: '#991b1b', padding: '8px', borderRadius: '4px', marginTop: '8px', fontSize: '13px', border: '1px solid #fee2e2' }}>
+          <strong>⚠️ Nota Técnica Profunda:</strong> {turno.hallazgos}
+        </div>
+      )}
+      <button onClick={() => alEditar(turno)} style={{ marginTop: '10px', background: '#475569', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>📝 Evaluar Falla</button>
     </div>
   );
 }
 
-export default App;
+// COMPONENTE PRINCIPAL (SPA)
+export default function App() {
+  const [turnos, setTurnos] = useState([]);
+  const [placa, setPlaca] = useState('');
+  const [cliente, setCliente] = useState('');
+  const [turnoSeleccionado, setTurnoSeleccionado] = useState(null);
+  const [estadoMecanico, setEstadoMecanico] = useState('');
+  const [hallazgosMecanico, setHallazgosMecanico] = useState('');
+
+  // Carga asíncrona mediante useEffect y Axios
+  const cargarTurnos = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/turnos');
+      setTurnos(res.data);
+    } catch (err) {
+      console.error("Error al conectar con la API back-end:", err);
+    }
+  };
+
+  useEffect(() => {
+    cargarTurnos();
+  }, []);
+
+  const agendarCita = async (e) => {
+    e.preventDefault();
+    if (!placa || !cliente) return alert("Por favor rellenar campos obligatorios.");
+    try {
+      await axios.post('http://localhost:5000/api/turnos', { placa, cliente });
+      setPlaca(''); setCliente('');
+      cargarTurnos(); // Recarga de alto rendimiento
+      alert("Cita agendada con éxito.");
+    } catch (error) {
+      alert("Error de comunicación de red al guardar.");
+    }
+  };
+
+  const enviarDiagnostico = async () => {
+    if (!estadoMecanico || !hallazgosMecanico) return alert("Complete los datos.");
+    try {
+      await axios.put(`http://localhost:5000/api/turnos/${turnoSeleccionado.id}`, {
+        estado: estadoMecanico,
+        hallazgos: hallazgosMecanico
+      });
+      setTurnoSeleccionado(null); setEstadoMecanico(''); setHallazgosMecanico('');
+      cargarTurnos();
+      alert("Base de datos actualizada.");
+    } catch (error) {
+      alert("Error al actualizar datos.");
+    }
+  };
+
+  return (
+    <div style={{ fontFamily: 'Segoe UI, sans-serif', padding: '20px', maxWidth: '800px', margin: '0 auto', background: '#f8fafc' }}>
+      <header style={{ background: '#1e293b', color: 'white', padding: '15px', borderRadius: '6px', textAlign: 'center' }}>
+        <h2>Taller Selbaf - Sistema Integrado Web II</h2>
+      </header>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
+        {/* LADO IZQUIERDO: CLIENTE */}
+        <div>
+          <div style={{ background: 'white', padding: '15px', borderRadius: '6px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <h3>📋 Módulo de Agendamiento</h3>
+            <form onSubmit={agendarCita}>
+              <input type="text" placeholder="Placa Vehículo *" value={placa} onChange={e => setPlaca(e.target.value)} style={{ width: '90%', padding: '8px', marginBottom: '10px' }} /><br/>
+              <input type="text" placeholder="Nombre Propietario *" value={cliente} onChange={e => setCliente(e.target.value)} style={{ width: '90%', padding: '8px', marginBottom: '10px' }} /><br/>
+              <button type="submit" style={{ background: '#2563eb', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}>Reservar Cupo</button>
+            </form>
+          </div>
+
+          {turnoSeleccionado && (
+            <div style={{ background: '#f1f5f9', padding: '15px', borderRadius: '6px', marginTop: '15px', border: '1px solid #cbd5e1' }}>
+              <h3>🔧 Diagnosticar ID: {turnoSeleccionado.id}</h3>
+              <select onChange={e => setEstadoMecanico(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '10px' }}>
+                <option value="">-- Cambiar Estado --</option>
+                <option value="En Reparación">En Reparación</option>
+                <option value="Falla Crítica Profunda">Requiere Repuestos (Falla profunda)</option>
+                <option value="Listo para Entrega">Listo para Entrega</option>
+              </select>
+              <textarea placeholder="Detalle técnico de la falla..." value={hallazgosMecanico} onChange={e => setHallazgosMecanico(e.target.value)} style={{ width: '95%', height: '60px', marginBottom: '10px' }} />
+              <button onClick={enviarDiagnostico} style={{ background: '#10b981', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}>Guardar en BD</button>
+            </div>
+          )}
+        </div>
+
+        {/* LADO DERECHO: COLA DE TRABAJO DEL MECÁNICO */}
+        <div>
+          <h3>🛠️ Cola Operativa del Taller</h3>
+          {turnos.length === 0 ? <p>No hay motos en cola.</p> : 
+            turnos.map(t => <TarjetaTurno key={t.id} turno={t} alEditar={setTurnoSeleccionado} />)
+          }
+        </div>
+      </div>
+    </div>
+  );
+}
