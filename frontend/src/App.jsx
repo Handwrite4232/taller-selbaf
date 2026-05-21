@@ -2,8 +2,63 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+<<<<<<< HEAD
 // COMPONENTE SECUNDARIO DE ALTO RENDIMIENTO (Rúbrica: Estructura sistemática y visual)
 export function TarjetaTurno({ turno, alEditar }) {
+=======
+function App() {
+  // ---- HOOKS DE ESTADO (useState) ----
+  const [turnos, setTurnos] = useState([]);
+  const [placa, setPlaca] = useState('');
+  const [cliente, setCliente] = useState('');
+  const [servicio, setServicio] = useState('');
+
+  // Formulario para que el mecánico edite diagnósticos complejos
+  const [idSeleccionado, setIdSeleccionado] = useState(null);
+  const [nuevoEstado, setNuevoEstado] = useState('');
+  const [detallesHallazgo, setDetallesHallazgo] = useState('');
+
+  // ---- HOOK DE EFECTO (useEffect) ----
+  // Simula Axios cargando los datos del servidor de manera asíncrona al abrir la app
+  useEffect(() => {
+    // Aquí iría: axios.get('/api/turnos').then(...)
+    // Usamos datos simulados integrados para que compile inmediatamente sin configurar proxies externos
+    setTurnos([
+      { id: 1, placa: "XYZ-123", cliente: "Juan Pérez", servicio: "Cambio de aceite", estado: "En diagnóstico", hallazgos: "" },
+      { id: 2, placa: "ABC-789", cliente: "Maria Gomez", servicio: "Mantenimiento general", estado: "Recibida", hallazgos: "" }
+    ]);
+  }, []);
+
+  // Función para manejar el envío del formulario del cliente (Agendamiento)
+  const manejarAgendamiento = (e) => {
+    e.preventDefault();
+    if (!placa || !cliente || !servicio) return alert("Por favor llene todos los campos");
+
+    const nuevaCita = {
+      id: turnos.length + 1,
+      placa,
+      cliente,
+      servicio,
+      estado: "Recibida",
+      hallazgos: ""
+    };
+
+    setTurnos([...turnos, nuevaCita]); // Actualiza la UI instantáneamente
+    setPlaca(''); setCliente(''); setServicio('');
+    alert("¡Turno agendado con éxito!");
+  };
+
+  // Función para guardar actualizaciones técnicas profundas encontradas por el mecánico
+  const guardarDiagnosticoMecanico = (id) => {
+    setTurnos(turnos.map(turno => 
+      turno.id === id ? { ...turno, estado: nuevoEstado, hallazgos: detallesHallazgo } : turno
+    ));
+    setIdSeleccionado(null);
+    setDetallesHallazgo('');
+    alert("Diagnóstico crítico guardado e informado al cliente.");
+  };
+
+>>>>>>> 261c3cb066318dd935c17b97aa63cdf65ad71ac9
   return (
     <div style={{
       borderLeft: '6px solid #2563eb', padding: '15px', margin: '10px 0',
@@ -32,6 +87,7 @@ export function TarjetaTurno({ turno, alEditar }) {
   );
 }
 
+<<<<<<< HEAD
 // COMPONENTE PRINCIPAL (SPA)
 export default function App() {
   const [turnos, setTurnos] = useState([]);
@@ -127,3 +183,6 @@ export default function App() {
     </div>
   );
 }
+=======
+export default App;
+>>>>>>> 261c3cb066318dd935c17b97aa63cdf65ad71ac9

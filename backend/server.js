@@ -9,10 +9,23 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const DB_PATH = path.join(__dirname, 'data', 'turnos.json');
 
+<<<<<<< HEAD
 app.use(cors());
 app.use(express.json());
 
 // Estructura de Swagger conforme al informe
+=======
+
+app.use(express.json());
+
+// Base de datos en memoria 
+let turnos = [
+  { id: 1, placa: "XYZ-123", cliente: "Juan Pérez", servicio: "Cambio de aceite", estado: "En diagnóstico", hallazgos: "" },
+  { id: 2, placa: "ABC-789", cliente: "Maria Gomez", servicio: "Mantenimiento general", estado: "Recibida", hallazgos: "" }
+];
+
+// Documentación Swagger
+>>>>>>> 261c3cb066318dd935c17b97aa63cdf65ad71ac9
 const swaggerDocument = {
   openapi: "3.0.0",
   info: {
@@ -39,6 +52,11 @@ const swaggerDocument = {
     }
   }
 };
+<<<<<<< HEAD
+=======
+
+// Ruta para la interfaz gráfica 
+>>>>>>> 261c3cb066318dd935c17b97aa63cdf65ad71ac9
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // 1. GET con detección de errores
@@ -106,4 +124,11 @@ app.put('/api/turnos/:id', async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));
+=======
+app.listen(PORT, () => {
+  console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
+  console.log(`Documentación de Swagger disponible en http://localhost:${PORT}/api-docs`);
+});
+>>>>>>> 261c3cb066318dd935c17b97aa63cdf65ad71ac9
